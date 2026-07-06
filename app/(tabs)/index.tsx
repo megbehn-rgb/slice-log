@@ -9,7 +9,7 @@ import { FONT_BODY_REGULAR, FONT_BODY_SEMIBOLD } from '../../src/constants/typog
 import { useProfile } from '../../src/context/ProfileContext';
 import { useRestaurantsList } from '../../src/hooks/useRestaurantsList';
 
-const TAGLINE = "Princess & Teddy Graham's Culinary Adventures";
+const TAGLINE = "👸 Princess & Teddy Graham's Culinary Adventures 🧸";
 
 export default function HomeScreen() {
   const router = useRouter();
