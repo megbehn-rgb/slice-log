@@ -1,15 +1,18 @@
 {
   "expo": {
-    "name": "slice-log",
+    "name": "Slice Log",
     "slug": "slice-log",
     "version": "1.0.0",
+    "scheme": "slicelog",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.slicelog.app"
     },
     "android": {
+      "package": "com.slicelog.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -19,7 +22,23 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "themeColor": "#D64545",
+      "backgroundColor": "#FFF8EC"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Slice Log uses your photo library so you can attach pictures of your pizza to a restaurant entry.",
+          "cameraPermission": "Slice Log uses your camera so you can take a photo of your pizza to attach to a restaurant entry."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
