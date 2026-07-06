@@ -1,11 +1,13 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { RestaurantMap } from '../../src/components/RestaurantMap';
+import { useProfile } from '../../src/context/ProfileContext';
 import { listRestaurants } from '../../src/db/restaurantRepository';
 import type { Restaurant } from '../../src/types/restaurant';
 
 export default function MapScreen() {
   const router = useRouter();
+  const { activeProfile } = useProfile();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
   useFocusEffect(
@@ -17,6 +19,7 @@ export default function MapScreen() {
   return (
     <RestaurantMap
       restaurants={restaurants}
+      activeProfile={activeProfile ?? 'Tommy'}
       onSelectRestaurant={(id) => router.push({ pathname: '/restaurant/[id]', params: { id } })}
     />
   );

@@ -2,7 +2,9 @@ import type L from 'leaflet';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { COLORS } from '../constants/colors';
+import type { Profile } from '../context/ProfileContext';
 import type { Restaurant } from '../types/restaurant';
+import { getRatingsByActiveProfile } from '../utils/rating';
 
 const NYC_CENTER: [number, number] = [40.7128, -74.006];
 const DEFAULT_ZOOM = 11;
@@ -11,7 +13,12 @@ const LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 
 interface RestaurantMapProps {
   restaurants: Restaurant[];
+  activeProfile: Profile;
   onSelectRestaurant: (id: number) => void;
+}
+
+function ratingColor(profile: Profile): string {
+  return profile === 'Tommy' ? COLORS.tomato : COLORS.crust;
 }
 
 function ensureLeafletCss() {
@@ -34,7 +41,7 @@ function escapeHtml(value: string): string {
 // here using Leaflet + OpenStreetMap tiles -- free, no API key or billing
 // needed, unlike the Google Maps JavaScript API. Metro automatically picks
 // this file for web builds and the sibling RestaurantMap.tsx for native.
-export function RestaurantMap({ restaurants, onSelectRestaurant }: RestaurantMapProps) {
+export function RestaurantMap({ restaurants, activeProfile, onSelectRestaurant }: RestaurantMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -73,7 +80,7 @@ export function RestaurantMap({ restaurants, onSelectRestaurant }: RestaurantMap
     if (!mapRef.current) return;
     import('leaflet').then(({ default: leaflet }) => renderMarkers(leaflet));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurants]);
+  }, [restaurants, activeProfile]);
 
   function renderMarkers(leaflet: typeof L) {
     const map = mapRef.current;
@@ -82,13 +89,20 @@ export function RestaurantMap({ restaurants, onSelectRestaurant }: RestaurantMap
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = restaurants.map((restaurant) => {
       const marker = leaflet.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
-      const rating = restaurant.tommyRating !== null ? restaurant.tommyRating.toFixed(1) : '—';
+      const { primary, secondary } = getRatingsByActiveProfile(
+        activeProfile,
+        restaurant.tommyRating,
+        restaurant.meghanRating
+      );
+      const primaryText = primary.value !== null ? primary.value.toFixed(1) : '—';
+      const secondaryText = secondary.value !== null ? secondary.value.toFixed(1) : '—';
 
       const popupNode = document.createElement('div');
       popupNode.style.minWidth = '160px';
       popupNode.innerHTML = `
         <div style="font-weight:700;font-size:15px;margin-bottom:2px;">${escapeHtml(restaurant.name)}</div>
-        <div style="font-weight:600;font-size:13px;color:${COLORS.tomato};margin-bottom:4px;">Tommy's: ${rating}</div>
+        <div style="font-weight:600;font-size:13px;color:${ratingColor(primary.profile)};">${primary.label}: ${primaryText}</div>
+        <div style="font-weight:600;font-size:11px;color:${ratingColor(secondary.profile)};margin-bottom:4px;">${secondary.label}: ${secondaryText}</div>
         <button type="button" style="font-weight:600;font-size:12px;color:${COLORS.googleBlue};background:none;border:none;padding:0;cursor:pointer;">View details ›</button>
       `;
       popupNode.querySelector('button')?.addEventListener('click', () => {

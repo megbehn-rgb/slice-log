@@ -31,16 +31,11 @@ export interface RestaurantDetail extends Restaurant {
   orderTypes: string[];
 }
 
-// Tommy's rating is the sole field used for rating-based sorting/ranking;
-// Meghan's rating is display-only and intentionally has no corresponding
-// sort option. "Newest"/"Oldest" sort by the user-editable visit date, not
-// by when the row was inserted into the database.
-export type SortOption =
-  | 'tommyRatingDesc'
-  | 'tommyRatingAsc'
-  | 'visitDateDesc'
-  | 'visitDateAsc'
-  | 'alphabetical';
+// "High-Low"/"Low-High" sort by whichever profile is currently active (see
+// ProfileContext) -- Tommy's rating when Tommy's active, Meghan's when
+// Meghan's active. "Newest"/"Oldest" sort by the user-editable visit date,
+// not by when the row was inserted into the database.
+export type SortOption = 'ratingDesc' | 'ratingAsc' | 'visitDateDesc' | 'visitDateAsc' | 'alphabetical';
 
 export interface NewRestaurantInput {
   placeId: string;

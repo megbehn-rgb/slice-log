@@ -1,20 +1,30 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { listRestaurants } from '../db/restaurantRepository';
+import { useProfile } from '../context/ProfileContext';
 import type { Restaurant, SortOption } from '../types/restaurant';
 
 export function useRestaurantsList() {
+  const { activeProfile } = useProfile();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortOption>('tommyRatingDesc');
+  const [sort, setSort] = useState<SortOption>('ratingDesc');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [orderTypeFilter, setOrderTypeFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchResults = useCallback(() => {
-    return listRestaurants({ sort, search, tagFilter, orderTypeFilter });
-  }, [sort, search, tagFilter, orderTypeFilter]);
+    return listRestaurants({
+      sort,
+      search,
+      tagFilter,
+      orderTypeFilter,
+      ratingProfile: activeProfile ?? 'Tommy',
+    });
+    // Re-fetching (and re-sorting) whenever activeProfile changes is what
+    // makes switching profiles immediately update a rating-based sort.
+  }, [sort, search, tagFilter, orderTypeFilter, activeProfile]);
 
   const refresh = useCallback(async () => {
     setLoading(true);

@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Callout, Marker, type Region } from 'react-native-maps';
 import { COLORS } from '../constants/colors';
 import { FONT_BODY_SEMIBOLD, FONT_DISPLAY_BOLD } from '../constants/typography';
+import type { Profile } from '../context/ProfileContext';
 import type { Restaurant } from '../types/restaurant';
+import { getRatingsByActiveProfile } from '../utils/rating';
 
 const NYC_REGION: Region = {
   latitude: 40.7128,
@@ -14,10 +16,15 @@ const NYC_REGION: Region = {
 
 interface RestaurantMapProps {
   restaurants: Restaurant[];
+  activeProfile: Profile;
   onSelectRestaurant: (id: number) => void;
 }
 
-export function RestaurantMap({ restaurants, onSelectRestaurant }: RestaurantMapProps) {
+function ratingColor(profile: Profile): string {
+  return profile === 'Tommy' ? COLORS.tomato : COLORS.crust;
+}
+
+export function RestaurantMap({ restaurants, activeProfile, onSelectRestaurant }: RestaurantMapProps) {
   const mapRef = useRef<MapView>(null);
   const [mapReady, setMapReady] = useState(false);
 
@@ -46,23 +53,34 @@ export function RestaurantMap({ restaurants, onSelectRestaurant }: RestaurantMap
         initialRegion={NYC_REGION}
         onMapReady={() => setMapReady(true)}
       >
-        {restaurants.map((restaurant) => (
-          <Marker
-            key={restaurant.id}
-            coordinate={{ latitude: restaurant.latitude, longitude: restaurant.longitude }}
-          >
-            <Callout onPress={() => onSelectRestaurant(restaurant.id)}>
-              <View style={styles.callout}>
-                <Text style={styles.calloutName}>{restaurant.name}</Text>
-                <Text style={styles.calloutRating}>
-                  Tommy's:{' '}
-                  {restaurant.tommyRating !== null ? restaurant.tommyRating.toFixed(1) : '—'}
-                </Text>
-                <Text style={styles.calloutLink}>View details ›</Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
+        {restaurants.map((restaurant) => {
+          const { primary, secondary } = getRatingsByActiveProfile(
+            activeProfile,
+            restaurant.tommyRating,
+            restaurant.meghanRating
+          );
+          return (
+            <Marker
+              key={restaurant.id}
+              coordinate={{ latitude: restaurant.latitude, longitude: restaurant.longitude }}
+            >
+              <Callout onPress={() => onSelectRestaurant(restaurant.id)}>
+                <View style={styles.callout}>
+                  <Text style={styles.calloutName}>{restaurant.name}</Text>
+                  <Text style={[styles.calloutRating, { color: ratingColor(primary.profile) }]}>
+                    {primary.label}: {primary.value !== null ? primary.value.toFixed(1) : '—'}
+                  </Text>
+                  <Text
+                    style={[styles.calloutRatingSecondary, { color: ratingColor(secondary.profile) }]}
+                  >
+                    {secondary.label}: {secondary.value !== null ? secondary.value.toFixed(1) : '—'}
+                  </Text>
+                  <Text style={styles.calloutLink}>View details ›</Text>
+                </View>
+              </Callout>
+            </Marker>
+          );
+        })}
       </MapView>
     </View>
   );
@@ -87,7 +105,10 @@ const styles = StyleSheet.create({
   calloutRating: {
     fontFamily: FONT_BODY_SEMIBOLD,
     fontSize: 13,
-    color: COLORS.tomato,
+  },
+  calloutRatingSecondary: {
+    fontFamily: FONT_BODY_SEMIBOLD,
+    fontSize: 11,
   },
   calloutLink: {
     fontFamily: FONT_BODY_SEMIBOLD,

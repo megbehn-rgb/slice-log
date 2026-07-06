@@ -61,6 +61,7 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <RestaurantListItem
             restaurant={item}
+            activeProfile={activeProfile ?? 'Tommy'}
             onPress={() => router.push({ pathname: '/restaurant/[id]', params: { id: item.id } })}
           />
         )}

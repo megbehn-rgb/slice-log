@@ -1,3 +1,4 @@
+import type { Profile } from '../context/ProfileContext';
 import { supabase } from '../lib/supabase';
 import type {
   NewRestaurantInput,
@@ -33,15 +34,15 @@ function mapRow(row: any): Restaurant {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function applySort(query: any, sort: SortOption) {
+function applySort(query: any, sort: SortOption, ratingColumn: 'tommy_rating' | 'meghan_rating') {
   switch (sort) {
-    case 'tommyRatingDesc':
+    case 'ratingDesc':
       return query
-        .order('tommy_rating', { ascending: false, nullsFirst: false })
+        .order(ratingColumn, { ascending: false, nullsFirst: false })
         .order('name', { ascending: true });
-    case 'tommyRatingAsc':
+    case 'ratingAsc':
       return query
-        .order('tommy_rating', { ascending: true, nullsFirst: false })
+        .order(ratingColumn, { ascending: true, nullsFirst: false })
         .order('name', { ascending: true });
     case 'visitDateDesc':
       return query
@@ -61,10 +62,15 @@ export async function listRestaurants(options: {
   search: string;
   tagFilter?: string | null;
   orderTypeFilter?: string | null;
+  // Whose rating "High-Low"/"Low-High" sorts by -- only matters for the
+  // ratingDesc/ratingAsc sort options, so callers that only ever use other
+  // sorts (e.g. the map screen's alphabetical sort) can omit it.
+  ratingProfile?: Profile;
 }): Promise<Restaurant[]> {
   const search = options.search.trim();
   const tagFilter = options.tagFilter ?? null;
   const orderTypeFilter = options.orderTypeFilter ?? null;
+  const ratingColumn = options.ratingProfile === 'Meghan' ? 'meghan_rating' : 'tommy_rating';
 
   // Embedding a related table with `!inner` in the select list is the
   // PostgREST equivalent of the old SQLite "EXISTS (SELECT 1 FROM ... )"
@@ -90,7 +96,7 @@ export async function listRestaurants(options: {
     query = query.eq('restaurant_order_types.order_type', orderTypeFilter);
   }
 
-  const { data, error } = await applySort(query, options.sort);
+  const { data, error } = await applySort(query, options.sort, ratingColumn);
   if (error) throw error;
   return (data ?? []).map(mapRow);
 }

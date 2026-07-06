@@ -1,19 +1,24 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '../constants/colors';
 import { FONT_BODY_REGULAR, FONT_BODY_SEMIBOLD, FONT_DISPLAY_BOLD } from '../constants/typography';
+import type { Profile } from '../context/ProfileContext';
 import type { Restaurant } from '../types/restaurant';
 import { isHighScore } from '../utils/rating';
 
 interface RestaurantListItemProps {
   restaurant: Restaurant;
+  activeProfile: Profile;
   onPress: () => void;
 }
 
-export function RestaurantListItem({ restaurant, onPress }: RestaurantListItemProps) {
+export function RestaurantListItem({ restaurant, activeProfile, onPress }: RestaurantListItemProps) {
   const location = [restaurant.neighborhood, restaurant.borough]
     .filter((part) => !!part)
     .join(', ');
-  const flourish = isHighScore(restaurant.tommyRating);
+  // The badge shows whoever's currently using the app -- the other
+  // person's rating is still fully visible on the detail screen.
+  const displayedRating = activeProfile === 'Meghan' ? restaurant.meghanRating : restaurant.tommyRating;
+  const flourish = isHighScore(displayedRating);
 
   return (
     <Pressable
@@ -36,7 +41,7 @@ export function RestaurantListItem({ restaurant, onPress }: RestaurantListItemPr
       <View style={styles.ratingPillWrapper}>
         <View style={styles.ratingPill}>
           <Text style={styles.ratingText}>
-            {restaurant.tommyRating !== null ? restaurant.tommyRating.toFixed(1) : '—'}
+            {displayedRating !== null ? displayedRating.toFixed(1) : '—'}
           </Text>
         </View>
         {flourish && <Text style={styles.flourish}>🔥</Text>}

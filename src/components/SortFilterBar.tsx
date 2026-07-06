@@ -15,11 +15,12 @@ interface SortFilterBarProps {
   onOrderTypeFilterChange: (value: string | null) => void;
 }
 
-// Tommy's Rating is the only rating used for sorting — Meghan's is
-// display-only, so it intentionally has no corresponding option here.
+// "High-Low"/"Low-High" sort by whichever profile is currently active (see
+// ProfileContext) -- no name in the label since which rating that means
+// changes depending on who's using the app right now.
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'tommyRatingDesc', label: "Tommy's: High-Low" },
-  { value: 'tommyRatingAsc', label: "Tommy's: Low-High" },
+  { value: 'ratingDesc', label: 'High-Low' },
+  { value: 'ratingAsc', label: 'Low-High' },
   { value: 'visitDateDesc', label: 'Newest' },
   { value: 'visitDateAsc', label: 'Oldest' },
   { value: 'alphabetical', label: 'A–Z' },
