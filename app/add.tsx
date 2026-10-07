@@ -39,6 +39,7 @@ export default function AddRestaurantScreen() {
   const [query, setQuery] = useState('');
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [loadingPredictions, setLoadingPredictions] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [checkingSelection, setCheckingSelection] = useState(false);
 
   const [selectedDetails, setSelectedDetails] = useState<PlaceDetails | null>(null);
@@ -55,18 +56,26 @@ export default function AddRestaurantScreen() {
   useEffect(() => {
     if (!query.trim()) {
       setPredictions([]);
+      setSearchError(null);
       return;
     }
 
     const controller = new AbortController();
     const timeout = setTimeout(async () => {
       setLoadingPredictions(true);
+      setSearchError(null);
       try {
         const results = await autocompletePizzaPlaces(query, controller.signal);
         setPredictions(results);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
+          // Log the real status/message for debugging, but keep the UI
+          // message generic -- a thrown request (bad key, 403, quota,
+          // network error) is NOT the same as a search that succeeded with
+          // zero results, and must not land on the same "no results" text.
           console.warn('Autocomplete failed', error);
+          setPredictions([]);
+          setSearchError('Search failed. Check your connection or API key, then try again.');
         }
       } finally {
         setLoadingPredictions(false);
@@ -274,7 +283,9 @@ export default function AddRestaurantScreen() {
         )}
         ListEmptyComponent={
           query.trim() && !loadingPredictions ? (
-            <Text style={styles.noResults}>No pizza places found.</Text>
+            <Text style={[styles.noResults, searchError && styles.searchErrorText]}>
+              {searchError ?? 'No pizza places found.'}
+            </Text>
           ) : null
         }
       />
@@ -325,6 +336,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#888',
     marginTop: 24,
+    paddingHorizontal: 24,
+  },
+  searchErrorText: {
+    color: COLORS.tomato,
+    fontFamily: FONT_BODY_SEMIBOLD,
   },
   formContent: {
     padding: 20,
